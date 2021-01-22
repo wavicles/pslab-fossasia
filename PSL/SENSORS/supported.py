@@ -7,6 +7,7 @@ from PSL.SENSORS import BMP180
 from PSL.SENSORS import TSL2561
 from PSL.SENSORS import SHT21
 from PSL.SENSORS import BH1750
+from PSL.SENSORS import VL53L1X
 from PSL.SENSORS import SSD1306
 
 supported = {
@@ -17,6 +18,7 @@ supported = {
     0x39: TSL2561,  # Luminosity
     0x40: SHT21,  # Temperature, Humidity
     0x23: BH1750,  # Luminosity
+    0x29: VL53L1X, # Time-of-Flight
     # 0x3C:SSD1306,    #OLED display
 }
 
