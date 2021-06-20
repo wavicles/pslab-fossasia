@@ -1,32 +1,24 @@
-from __future__ import print_function
-
 import time
-
 from numpy import int16
+from pslab.bus import I2CSlave
 
-
-def connect(route, **args):
-    return BMP180(route, **args)
-
-
-class BMP180:
-    ADDRESS = 0x77
-    REG_CONTROL = 0xF4
-    REG_RESULT = 0xF6
-    CMD_TEMP = 0x2E
-    CMD_P0 = 0x34
-    CMD_P1 = 0x74
-    CMD_P2 = 0xB4
-    CMD_P3 = 0xF4
+class BMP180(I2CSlave):
+    _ADDRESS = 0x77
+    _REG_CONTROL = 0xF4
+    _REG_RESULT = 0xF6
+    _CMD_TEMP = 0x2E
+    _CMD_P0 = 0x34
+    _CMD_P1 = 0x74
+    _CMD_P2 = 0xB4
+    _CMD_P3 = 0xF4
     oversampling = 0
     NUMPLOTS = 3
     PLOTNAMES = ['Temperature', 'Pressure', 'Altitude']
-    name = 'Altimeter BMP180'
+    name = 'BMP180 Altimeter'
 
-    def __init__(self, I2C, **args):
-        self.ADDRESS = args.get('address', self.ADDRESS)
-
-        self.I2C = I2C
+    def __init__(self, **args):
+        self._ADDRESS = args.get('address', self._ADDRESS)
+        super().__init__(self._ADDRESS)
 
         self.MB = self.__readInt__(0xBA)
 
@@ -50,26 +42,25 @@ class BMP180:
         print('calib:', self.c3, self.c4, self.b1, self.c5, self.c6, self.mc, self.md, self.x0, self.x1, self.x2,
               self.y0, self.y1, self.p0, self.p1, self.p2)
         self.params = {'setOversampling': [0, 1, 2, 3]}
-        self.name = 'BMP180 Altimeter'
+
         self.initTemperature()
-        self.readTemperature()
         self.initPressure()
         self.baseline = self.readPressure()
 
     def __readInt__(self, addr):
-        return int16(self.__readUInt__(addr))
+        return int16(self.read_byte(addr))
 
     def __readUInt__(self, addr):
-        vals = self.I2C.readBulk(self.ADDRESS, addr, 2)
+        vals = self.read(2, addr)
         v = 1. * ((vals[0] << 8) | vals[1])
         return v
 
     def initTemperature(self):
-        self.I2C.writeBulk(self.ADDRESS, [self.REG_CONTROL, self.CMD_TEMP])
+        self.write([self._REG_CONTROL, self._CMD_TEMP])
         time.sleep(0.005)
 
     def readTemperature(self):
-        vals = self.I2C.readBulk(self.ADDRESS, self.REG_RESULT, 2)
+        vals = self.read(2, self._REG_RESULT)
         if len(vals) == 2:
             T = (vals[0] << 8) + vals[1]
             a = self.c5 * (T - self.c6)
@@ -84,11 +75,11 @@ class BMP180:
     def initPressure(self):
         os = [0x34, 0x74, 0xb4, 0xf4]
         delays = [0.005, 0.008, 0.014, 0.026]
-        self.I2C.writeBulk(self.ADDRESS, [self.REG_CONTROL, os[self.oversampling]])
+        self.write([self._REG_CONTROL, os[self.oversampling]])
         time.sleep(delays[self.oversampling])
 
     def readPressure(self):
-        vals = self.I2C.readBulk(self.ADDRESS, self.REG_RESULT, 3)
+        vals = self.read(3, self._REG_RESULT)
         if len(vals) == 3:
             P = 1. * (vals[0] << 8) + vals[1] + (vals[2] / 256.0)
             s = self.T - 25.0
