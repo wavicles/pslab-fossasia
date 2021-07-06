@@ -13,6 +13,7 @@ from typing import List, Tuple, Union
 import numpy as np
 
 import pslab.protocol as CP
+from pslab.bus.spi import SPIMaster
 from pslab.instrument.analog import ANALOG_CHANNELS, AnalogInput, GAIN_VALUES
 from pslab.serial_handler import ADCBufferMixin, SerialHandler
 
@@ -372,6 +373,12 @@ class Oscilloscope(ADCBufferMixin):
         self._set_gain(channel, gain)
 
     def _set_gain(self, channel: str, gain: int):
+        spi_config_supported = self._check_spi_config()
+
+        if not spi_config_supported:
+            spi_parameters = SPIMaster.get_parameters()
+            spi = SPIMaster(self._device)  # Initializing SPIMaster will reset config.
+
         self._channels[channel].gain = gain
         pga = self._channels[channel].programmable_gain_amplifier
         gain_idx = GAIN_VALUES.index(gain)
@@ -380,3 +387,23 @@ class Oscilloscope(ADCBufferMixin):
         self._device.send_byte(pga)
         self._device.send_byte(gain_idx)
         self._device.get_ack()
+
+        if not spi_config_supported:
+            spi.set_parameters(*spi_parameters)
+
+    @staticmethod
+    def _check_spi_config() -> bool:
+        """Check whether current SPI config is supported by PGA.
+
+        Returns
+        -------
+        bool
+            Returns True if SPI config is supported by PGA, otherwise False.
+        """
+        # Check the SPI mode. PGA only supports mode 0 and mode 3.
+        if (SPIMaster._clock_polarity, SPIMaster._clock_phase) not in [(0, 0), (1, 1)]:
+            return False
+        if SPIMaster._frequency > 10e6:  # PGA only supports max of 10MHz.
+            return False
+
+        return True
