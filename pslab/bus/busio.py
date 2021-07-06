@@ -30,7 +30,7 @@ Get gyro reading from BNO055 using adafruit_bno055, board(just a wrapper for bus
 
 from typing import List, Union
 
-from pslab.bus.i2c import I2CPrimitive
+from pslab.bus.i2c import _I2CPrimitive
 from pslab.serial_handler import SerialHandler
 
 __all__ = "I2C"
@@ -38,7 +38,7 @@ ReadableBuffer = Union[bytes, bytearray, memoryview]
 WriteableBuffer = Union[bytearray, memoryview]
 
 
-class I2C(I2CPrimitive):
+class I2C(_I2CPrimitive):
     """Busio I2C Class for CircuitPython Compatibility.
 
     Parameters

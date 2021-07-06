@@ -32,7 +32,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
-class I2CPrimitive:
+class _I2CPrimitive:
     """I2C primitive commands.
 
     Handles all the I2C subcommands coded in pslab-firmware.
@@ -429,7 +429,7 @@ class I2CPrimitive:
         return bytearray(data)
 
 
-class I2CMaster(I2CPrimitive):
+class I2CMaster(_I2CPrimitive):
     """I2C bus controller.
 
     Handles slave independent functionality with the I2C port.
@@ -480,7 +480,7 @@ class I2CMaster(I2CPrimitive):
         return addrs
 
 
-class I2CSlave(I2CPrimitive):
+class I2CSlave(_I2CPrimitive):
     """I2C slave device.
 
     Parameters
