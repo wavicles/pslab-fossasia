@@ -8,6 +8,7 @@ from typing import Iterable, List
 
 import pslab.protocol as CP
 from pslab.bus.i2c import I2CMaster
+from pslab.bus.spi import SPIMaster
 from pslab.instrument.logic_analyzer import LogicAnalyzer
 from pslab.instrument.multimeter import Multimeter
 from pslab.instrument.oscilloscope import Oscilloscope
@@ -46,6 +47,7 @@ class ScienceLab(SerialHandler):
         self.multimeter = Multimeter(device=self)
         self.power_supply = PowerSupply(device=self)
         self.i2c = I2CMaster(device=self)
+        self.spi = SPIMaster(device=self)
         self.nrf = NRF24L01(device=self)
 
         if "V6" in self.version:  # Set the built-in WS2812B to green :)
