@@ -17,6 +17,7 @@ Connect to the PSLab's built-in DS1307 RTC:
 
 >>> rtc = I2CSlave(address=104)
 """
+
 import logging
 from typing import List
 
@@ -31,7 +32,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
-class I2CPrimitive:
+class _I2CPrimitive:
     """I2C primitive commands.
 
     Handles all the I2C subcommands coded in pslab-firmware.
@@ -385,6 +386,7 @@ class I2CPrimitive:
 
         for _ in range(bytes_to_read - 1):
             data.append(self._read_more())
+
         data.append(self._read_end())
 
         return data
@@ -427,7 +429,7 @@ class I2CPrimitive:
         return bytearray(data)
 
 
-class I2CMaster(I2CPrimitive):
+class I2CMaster(_I2CPrimitive):
     """I2C bus controller.
 
     Handles slave independent functionality with the I2C port.
@@ -478,7 +480,7 @@ class I2CMaster(I2CPrimitive):
         return addrs
 
 
-class I2CSlave(I2CPrimitive):
+class I2CSlave(_I2CPrimitive):
     """I2C slave device.
 
     Parameters
@@ -513,6 +515,7 @@ class I2CSlave(I2CPrimitive):
         """
         response = self._start(self.address, self._READ)
         self._stop()
+
         return response == self._ACK
 
     def read(self, bytes_to_read: int, register_address: int = 0x0) -> bytearray:
@@ -572,6 +575,7 @@ class I2CSlave(I2CPrimitive):
             Two bytes interpreted as a uint16.
         """
         data = self.read(2, register_address)
+
         return CP.ShortInt.unpack(data)[0]
 
     def read_long(self, register_address: int = 0x0) -> int:
@@ -589,6 +593,7 @@ class I2CSlave(I2CPrimitive):
             Four bytes interpreted as a uint32.
         """
         data = self.read(4, register_address)
+
         return CP.Integer.unpack(data)[0]
 
     def write(self, bytes_to_write: bytearray, register_address: int = 0x0):
